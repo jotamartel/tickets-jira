@@ -1,0 +1,67 @@
+# Ticket Portal - Cursor Rules
+
+## Proyecto
+Sistema de tickets Cliente → Jira con notificación a Google Chat.
+Deploy en Vercel.
+
+## Stack
+- Next.js 14 (App Router)
+- TypeScript
+- Tailwind CSS
+- Jira REST API v3
+- Google Chat Webhooks
+
+## Estructura
+```
+/app
+  /page.tsx                 # Formulario principal
+  /api/ticket/route.ts      # Crear ticket en Jira + notificar
+  /api/notify/route.ts      # Notificar a Google Chat (standalone)
+/components
+  /TicketForm.tsx           # Formulario con validación
+  /SuccessMessage.tsx       # Confirmación post-envío
+/lib
+  /jira.ts                  # Cliente Jira API
+  /googleChat.ts            # Cliente Google Chat webhook
+  /types.ts                 # Tipos TypeScript
+/config
+  /projects.ts              # Mapeo clientes → proyectos Jira
+```
+
+## Variables de entorno requeridas
+```
+JIRA_HOST=https://infracommerce.atlassian.net
+JIRA_EMAIL=email@infracommerce.com
+JIRA_API_TOKEN=xxx
+GOOGLE_CHAT_WEBHOOK_URL=https://chat.googleapis.com/v1/spaces/xxx/messages?key=xxx
+```
+
+## Convenciones
+- Componentes cliente: usar 'use client' al inicio
+- API routes: validar inputs y sanitizar antes de usar
+- Rate limiting: 10 req/min por IP en /api/ticket
+- Errores: retornar { success: false, error: string }
+- Éxito: retornar { success: true, issueKey, issueUrl }
+
+## Mapeo de clientes a proyectos Jira
+- goodyear → GB (Goodyear Brasil)
+- modelo → DM (Modelo Adobe)
+- adobe-suite → IAS (Infracommerce Adobe Suite)
+- hiraoka → HIRAOKA (HIRAOKA)
+
+## Tipos principales
+```typescript
+interface TicketRequest {
+  cliente: string
+  asunto: string           // max 255 chars
+  descripcion: string
+  tipo: 'Bug' | 'Task' | 'Support'
+  urgencia: 'Low' | 'Medium' | 'High'
+  contacto?: string        // email opcional
+}
+```
+
+## Comandos
+- `npm run dev` - desarrollo local
+- `npm run build` - build producción
+- `vercel` - deploy
